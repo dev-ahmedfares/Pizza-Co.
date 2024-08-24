@@ -1,4 +1,9 @@
-import { Form, redirect, useActionData, useNavigation } from "react-router-dom";
+import {
+  Form,
+  redirect,
+  useActionData,
+  useNavigation,
+} from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { clearCart, getCart, getTotalCartPrice } from "../cart/cartSlice";
 import { createOrder } from "../../services/apiRestaurant";
@@ -7,37 +12,13 @@ import store from "../../store";
 import { useState } from "react";
 import { fetchAddress } from "../user/userSlice";
 import { formatCurrency } from "../../utils/helpers";
-
+import LinkButton from "../../ui/LinkButton";
 
 // https://uibakery.io/regex-library/phone-number
 const isValidPhone = (str) =>
   /^\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}$/.test(
     str,
   );
-
-// const fakeCart = [
-//   {
-//     pizzaId: 12,
-//     name: "Mediterranean",
-//     quantity: 2,
-//     unitPrice: 16,
-//     totalPrice: 32,
-//   },
-//   {
-//     pizzaId: 6,
-//     name: "Vegetale",
-//     quantity: 1,
-//     unitPrice: 13,
-//     totalPrice: 13,
-//   },
-//   {
-//     pizzaId: 11,
-//     name: "Spinach and Mushroom",
-//     quantity: 1,
-//     unitPrice: 15,
-//     totalPrice: 15,
-//   },
-// ];
 
 function CreateOrder() {
   const [withPriority, setWithPriority] = useState(false);
@@ -54,10 +35,18 @@ function CreateOrder() {
   } = useSelector((state) => state.user);
   const isLoadingAddress = addressStatus === "loading";
   const dispatch = useDispatch();
-  
+
   const totalCartPrice = useSelector(getTotalCartPrice);
-  const priorityPrice = withPriority ? totalCartPrice * .2 : 0
-  const totalPrice =totalCartPrice + priorityPrice
+  const priorityPrice = withPriority ? totalCartPrice * 0.2 : 0;
+  const totalPrice = totalCartPrice + priorityPrice;
+
+  if (cart.length === 0) {
+    return (
+      <div className="mt-20 text-center">
+        <LinkButton to="/menu">Back to menu, cart empty ⛔</LinkButton>
+      </div>
+    );
+  }
 
   return (
     <div className="px-3">
@@ -134,7 +123,7 @@ function CreateOrder() {
           <label htmlFor="priority">Want to yo give your order priority?</label>
         </div>
 
-        <div >
+        <div>
           <input type="hidden" name="cart" value={JSON.stringify(cart)} />
           <input
             type="hidden"
@@ -145,10 +134,12 @@ function CreateOrder() {
                 : ""
             }
           />
+
           <Button disabled={isSubmitting || isLoadingAddress} type={"primary"}>
-            {isSubmitting ? "Placing order...." : `Order now from ${formatCurrency(totalPrice)}`}
+            {isSubmitting
+              ? "Placing order...."
+              : `Order now from ${formatCurrency(totalPrice)}`}
           </Button>
-          
         </div>
       </Form>
     </div>
@@ -162,9 +153,8 @@ export async function action({ request }) {
   const order = {
     ...data,
     cart: JSON.parse(data.cart),
-    
   };
-  
+
   const errors = {};
 
   if (!isValidPhone(data.phone))
